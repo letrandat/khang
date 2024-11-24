@@ -1,5 +1,6 @@
 def guess_the_number():
-    """Simple number guessing game."""
+    print("Welcome to Guess the Number!")
+    print("I'm thinking of a number between 1 and 100.")
 
 if __name__ == "__main__":
-    print("A simple number guessing game.")
+    guess_the_number()
