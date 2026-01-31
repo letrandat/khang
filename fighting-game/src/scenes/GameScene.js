@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import Player from '../entities/Player.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -17,11 +18,15 @@ export default class GameScene extends Phaser.Scene {
     // Create player standing on the ground
     // Player is 48px tall, so to stand on ground (top at y=568),
     // player center should be at y = 568 - 24 = 544
-    this.player = this.physics.add.sprite(100, 500, 'player');
-    this.player.setCollideWorldBounds(true);
+    this.player = new Player(this, 100, 500);
 
     // Set up collisions
     this.physics.add.collider(this.player, this.ground);
     this.physics.add.collider(this.player, this.platform);
+  }
+
+  update() {
+    // Update player each frame to handle input
+    this.player.update();
   }
 }
