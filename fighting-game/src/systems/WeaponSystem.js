@@ -75,11 +75,11 @@ export default class WeaponSystem {
 
   /**
    * Update method called each frame
-   * Handles X key input for shooting
+   * Handles X key input for continuous shooting while held
    */
   update() {
-    // Check for X key press (using justDown for single shot per press)
-    if (Phaser.Input.Keyboard.JustDown(this.shootKey)) {
+    // Check for X key held down (continuous fire with rate limiting)
+    if (this.shootKey.isDown) {
       this.fire();
     }
   }

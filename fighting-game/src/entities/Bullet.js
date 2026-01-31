@@ -32,8 +32,9 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
     this.setActive(true);
     this.setVisible(true);
 
-    // Enable physics body
+    // Enable physics body and disable gravity (bullets fly straight)
     this.body.enable = true;
+    this.body.setAllowGravity(false);
 
     // Set velocity based on direction
     this.setVelocityX(direction * this.speed);
