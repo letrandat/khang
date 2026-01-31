@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import Player from '../entities/Player.js';
+import WeaponSystem from '../systems/WeaponSystem.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -23,10 +24,16 @@ export default class GameScene extends Phaser.Scene {
     // Set up collisions
     this.physics.add.collider(this.player, this.ground);
     this.physics.add.collider(this.player, this.platform);
+
+    // Create weapon system
+    this.weaponSystem = new WeaponSystem(this, this.player);
   }
 
   update() {
     // Update player each frame to handle input
     this.player.update();
+
+    // Update weapon system for input handling
+    this.weaponSystem.update();
   }
 }
