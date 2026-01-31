@@ -32,9 +32,25 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   /**
    * Returns true when the player is in the air (jumping or falling)
    * Critical for the crit system - jump shots deal 2x damage
+   * Uses blocked.down instead of velocity.y !== 0 to correctly detect
+   * airborne state at jump apex when velocity briefly equals 0
    */
-  get isAirborne() {
+  isAirborne() {
     return !this.body.blocked.down;
+  }
+
+  /**
+   * Get player position for weapon system
+   */
+  getPosition() {
+    return { x: this.x, y: this.y };
+  }
+
+  /**
+   * Get facing direction for weapon system (-1 = left, 1 = right)
+   */
+  getFacing() {
+    return this.facingDirection;
   }
 
   /**
