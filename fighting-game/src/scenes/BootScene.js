@@ -31,6 +31,27 @@ export default class BootScene extends Phaser.Scene {
     platformGraphics.fillRect(0, 0, 200, 20);
     platformGraphics.generateTexture('platform', 200, 20);
     platformGraphics.destroy();
+
+    // Bullet placeholder - white rectangle 8x4 (for Task 3)
+    const bulletGraphics = this.make.graphics({ x: 0, y: 0, add: false });
+    bulletGraphics.fillStyle(0xffffff, 1);
+    bulletGraphics.fillRect(0, 0, 8, 4);
+    bulletGraphics.generateTexture('bullet', 8, 4);
+    bulletGraphics.destroy();
+
+    // Crit bullet placeholder - yellow rectangle 10x5 (for Task 3)
+    const critBulletGraphics = this.make.graphics({ x: 0, y: 0, add: false });
+    critBulletGraphics.fillStyle(0xffff00, 1);
+    critBulletGraphics.fillRect(0, 0, 10, 5);
+    critBulletGraphics.generateTexture('bullet-crit', 10, 5);
+    critBulletGraphics.destroy();
+
+    // Enemy grunt placeholder - red rectangle 32x48 (for Task 4)
+    const gruntGraphics = this.make.graphics({ x: 0, y: 0, add: false });
+    gruntGraphics.fillStyle(0xff4444, 1);
+    gruntGraphics.fillRect(0, 0, 32, 48);
+    gruntGraphics.generateTexture('enemy-grunt', 32, 48);
+    gruntGraphics.destroy();
   }
 
   create() {
