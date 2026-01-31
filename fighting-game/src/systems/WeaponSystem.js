@@ -1,14 +1,19 @@
 import Phaser from 'phaser';
 import Bullet from '../entities/Bullet.js';
-import { WEAPONS, getWeaponWithTier, rotateWeapon } from '../config/weapons.js';
+import { WEAPONS, WEAPON_IDS, getWeaponWithTier, rotateWeapon } from '../config/weapons.js';
 
 export default class WeaponSystem {
-  constructor(scene, player) {
+  constructor(scene, player, randomWeapon = false) {
     this.scene = scene;
     this.player = player;
 
-    // Current weapon state
-    this.currentWeaponId = 'energyBlaster';
+    // Current weapon state - optionally start with a random weapon
+    if (randomWeapon) {
+      const randomIndex = Math.floor(Math.random() * WEAPON_IDS.length);
+      this.currentWeaponId = WEAPON_IDS[randomIndex];
+    } else {
+      this.currentWeaponId = 'energyBlaster';
+    }
     this.currentTier = 1;
     this.currentWeapon = getWeaponWithTier(this.currentWeaponId, this.currentTier);
 
@@ -364,6 +369,15 @@ export default class WeaponSystem {
     this.currentWeapon = getWeaponWithTier(weaponId, tier);
     this.fireRate = this.currentWeapon.fireRate;
     this.scene.events.emit('weaponChanged', this.currentWeapon);
+  }
+
+  /**
+   * Set a random T1 weapon (used for game restart)
+   */
+  setRandomWeapon() {
+    const randomIndex = Math.floor(Math.random() * WEAPON_IDS.length);
+    const randomWeaponId = WEAPON_IDS[randomIndex];
+    this.setWeapon(randomWeaponId, 1);
   }
 
   /**

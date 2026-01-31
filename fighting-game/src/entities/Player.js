@@ -18,6 +18,12 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     // Track facing direction (1 = right, -1 = left)
     this.facingDirection = 1;
 
+    // Health system
+    this.maxHealth = 100;
+    this.health = this.maxHealth;
+    this.isInvincible = false;
+    this.invincibilityDuration = 1000; // 1 second of invincibility after taking damage
+
     // Set up input keys
     this.cursors = scene.input.keyboard.createCursorKeys();
     this.wasd = scene.input.keyboard.addKeys({
@@ -92,5 +98,82 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     if (jumpPressed && this.body.blocked.down) {
       this.setVelocityY(this.jumpVelocity);
     }
+  }
+
+  /**
+   * Take damage and handle invincibility
+   * @param {number} amount - Amount of damage to take
+   * @returns {boolean} True if damage was taken, false if invincible
+   */
+  takeDamage(amount) {
+    // Skip if invincible
+    if (this.isInvincible) {
+      return false;
+    }
+
+    // Apply damage
+    this.health = Math.max(0, this.health - amount);
+
+    // Emit damage event for UI and game over handling
+    this.scene.events.emit('playerDamaged', this.health, this.maxHealth);
+
+    // Check for death
+    if (this.health <= 0) {
+      this.scene.events.emit('playerDied');
+      return true;
+    }
+
+    // Start invincibility period
+    this.startInvincibility();
+
+    return true;
+  }
+
+  /**
+   * Start invincibility period with flashing effect
+   */
+  startInvincibility() {
+    this.isInvincible = true;
+
+    // Create flashing/blinking effect
+    this.flashTween = this.scene.tweens.add({
+      targets: this,
+      alpha: 0.3,
+      duration: 100,
+      yoyo: true,
+      repeat: Math.floor(this.invincibilityDuration / 200) - 1,
+      onComplete: () => {
+        this.setAlpha(1);
+        this.isInvincible = false;
+      },
+    });
+  }
+
+  /**
+   * Get current health
+   * @returns {number} Current health
+   */
+  getHealth() {
+    return this.health;
+  }
+
+  /**
+   * Get max health
+   * @returns {number} Max health
+   */
+  getMaxHealth() {
+    return this.maxHealth;
+  }
+
+  /**
+   * Reset player health to full
+   */
+  resetHealth() {
+    this.health = this.maxHealth;
+    this.isInvincible = false;
+    if (this.flashTween) {
+      this.flashTween.stop();
+    }
+    this.setAlpha(1);
   }
 }

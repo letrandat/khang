@@ -26,8 +26,8 @@ export default class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.player, this.ground);
     this.physics.add.collider(this.player, this.platform);
 
-    // Create weapon system
-    this.weaponSystem = new WeaponSystem(this, this.player);
+    // Create weapon system with random T1 weapon
+    this.weaponSystem = new WeaponSystem(this, this.player, true);
 
     // Create enemy group (physics group for collision detection)
     this.enemies = this.physics.add.group();
@@ -51,8 +51,24 @@ export default class GameScene extends Phaser.Scene {
     // Create weapon UI
     this.createWeaponUI();
 
+    // Create health bar UI
+    this.createHealthUI();
+
     // Listen for weapon changes
     this.events.on('weaponChanged', this.updateWeaponUI, this);
+
+    // Listen for player damage and death
+    this.events.on('playerDamaged', this.updateHealthUI, this);
+    this.events.on('playerDied', this.onPlayerDied, this);
+
+    // Set up player-enemy collision for contact damage
+    this.physics.add.overlap(
+      this.player,
+      this.enemies,
+      this.handlePlayerEnemyCollision,
+      null,
+      this
+    );
   }
 
   /**
@@ -123,6 +139,102 @@ export default class GameScene extends Phaser.Scene {
     this.tierIndicators.forEach((pip, index) => {
       pip.setFillStyle(index < tier ? colors.active : colors.inactive);
     });
+  }
+
+  /**
+   * Create health bar UI at top of screen
+   */
+  createHealthUI() {
+    const barX = 400;
+    const barY = 60;
+    const barWidth = 200;
+    const barHeight = 20;
+
+    // Health bar background (dark gray)
+    this.healthBarBg = this.add.rectangle(barX, barY, barWidth, barHeight, 0x333333);
+    this.healthBarBg.setDepth(199);
+    this.healthBarBg.setScrollFactor(0);
+
+    // Health bar fill (red)
+    this.healthBarFill = this.add.rectangle(
+      barX - barWidth / 2,
+      barY,
+      barWidth,
+      barHeight - 4,
+      0xff4444
+    );
+    this.healthBarFill.setOrigin(0, 0.5);
+    this.healthBarFill.setDepth(200);
+    this.healthBarFill.setScrollFactor(0);
+
+    // Health bar border
+    this.healthBarBorder = this.add.rectangle(barX, barY, barWidth + 4, barHeight + 4);
+    this.healthBarBorder.setStrokeStyle(2, 0xffffff);
+    this.healthBarBorder.setDepth(201);
+    this.healthBarBorder.setScrollFactor(0);
+
+    // Health text
+    this.healthText = this.add.text(barX, barY, '100 / 100', {
+      fontSize: '14px',
+      fontFamily: 'Arial',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 2,
+    });
+    this.healthText.setOrigin(0.5);
+    this.healthText.setDepth(202);
+    this.healthText.setScrollFactor(0);
+  }
+
+  /**
+   * Update health bar UI
+   * @param {number} currentHealth - Current health
+   * @param {number} maxHealth - Max health
+   */
+  updateHealthUI(currentHealth, maxHealth) {
+    const healthPercent = currentHealth / maxHealth;
+    const barWidth = 200;
+
+    // Update fill width
+    this.healthBarFill.setDisplaySize(barWidth * healthPercent, 16);
+
+    // Update color based on health percentage
+    if (healthPercent > 0.6) {
+      this.healthBarFill.setFillStyle(0x44ff44); // Green when healthy
+    } else if (healthPercent > 0.3) {
+      this.healthBarFill.setFillStyle(0xffaa00); // Orange when damaged
+    } else {
+      this.healthBarFill.setFillStyle(0xff4444); // Red when critical
+    }
+
+    // Update text
+    this.healthText.setText(`${currentHealth} / ${maxHealth}`);
+  }
+
+  /**
+   * Handle collision between player and enemy (contact damage)
+   * @param {Player} player - The player
+   * @param {Enemy} enemy - The enemy
+   */
+  handlePlayerEnemyCollision(player, enemy) {
+    if (!player.active || !enemy.active || enemy.isDying) return;
+
+    // Deal damage to player (10 damage per hit)
+    player.takeDamage(10);
+  }
+
+  /**
+   * Handle player death
+   */
+  onPlayerDied() {
+    // Get waves survived (current wave - 1 since they died during current wave)
+    const wavesSurvived = this.waveSystem.getCurrentWave();
+
+    // Clean up wave system
+    this.waveSystem.destroy();
+
+    // Transition to game over scene
+    this.scene.start('GameOverScene', { wavesSurvived });
   }
 
   /**
