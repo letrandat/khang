@@ -155,13 +155,13 @@ export default class GameScene extends Phaser.Scene {
     this.healthBarBg.setDepth(199);
     this.healthBarBg.setScrollFactor(0);
 
-    // Health bar fill (red)
+    // Health bar fill (green at full health)
     this.healthBarFill = this.add.rectangle(
       barX - barWidth / 2,
       barY,
       barWidth,
       barHeight - 4,
-      0xff4444
+      0x44ff44
     );
     this.healthBarFill.setOrigin(0, 0.5);
     this.healthBarFill.setDepth(200);
@@ -219,8 +219,8 @@ export default class GameScene extends Phaser.Scene {
   handlePlayerEnemyCollision(player, enemy) {
     if (!player.active || !enemy.active || enemy.isDying) return;
 
-    // Deal damage to player (10 damage per hit)
-    player.takeDamage(10);
+    // Deal damage to player using enemy's damage value
+    player.takeDamage(enemy.damage);
   }
 
   /**
