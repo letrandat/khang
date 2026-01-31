@@ -80,7 +80,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.health -= damage;
 
     // Show floating damage number
-    this.showDamageNumber(displayText, isHeadshot || bullet.isCrit);
+    this.showDamageNumber(displayText, isHeadshot || isCrit);
 
     // Check for death
     if (this.health <= 0) {
