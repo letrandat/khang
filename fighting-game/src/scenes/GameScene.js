@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import Player from '../entities/Player.js';
 import WeaponSystem from '../systems/WeaponSystem.js';
-import Grunt from '../entities/enemies/Grunt.js';
+import WaveSystem from '../systems/WaveSystem.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -32,8 +32,8 @@ export default class GameScene extends Phaser.Scene {
     // Create enemy group (physics group for collision detection)
     this.enemies = this.physics.add.group();
 
-    // Spawn test grunts at specified positions
-    this.spawnGrunts();
+    // Create wave system (handles spawning enemies)
+    this.waveSystem = new WaveSystem(this, this.enemies);
 
     // Set up enemy collisions with ground and platforms
     this.physics.add.collider(this.enemies, this.ground);
@@ -47,18 +47,81 @@ export default class GameScene extends Phaser.Scene {
       null,
       this
     );
+
+    // Create weapon UI
+    this.createWeaponUI();
+
+    // Listen for weapon changes
+    this.events.on('weaponChanged', this.updateWeaponUI, this);
   }
 
   /**
-   * Spawn test grunts at positions 600, 650, 700
+   * Create weapon name and tier UI display
    */
-  spawnGrunts() {
-    const spawnPositions = [600, 650, 700];
-    const groundY = 544; // Same Y as player spawn (standing on ground)
+  createWeaponUI() {
+    // Weapon display background
+    this.weaponUIBg = this.add.rectangle(400, 570, 200, 30, 0x000000, 0.6);
+    this.weaponUIBg.setDepth(199);
+    this.weaponUIBg.setScrollFactor(0);
 
-    spawnPositions.forEach((x) => {
-      const grunt = new Grunt(this, x, groundY);
-      this.enemies.add(grunt);
+    // Weapon name and tier text
+    const currentWeapon = this.weaponSystem.getCurrentWeapon();
+    this.weaponText = this.add.text(400, 570, currentWeapon.displayName, {
+      fontSize: '16px',
+      fontFamily: 'Arial',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 2,
+    });
+    this.weaponText.setOrigin(0.5);
+    this.weaponText.setDepth(200);
+    this.weaponText.setScrollFactor(0);
+
+    // Tier indicators (visual pips)
+    this.tierIndicators = [];
+    for (let i = 0; i < 3; i++) {
+      const pip = this.add.circle(350 + i * 15, 585, 4, 0x666666);
+      pip.setDepth(200);
+      pip.setScrollFactor(0);
+      this.tierIndicators.push(pip);
+    }
+
+    // Update tier indicators for initial weapon
+    this.updateTierIndicators(currentWeapon.tier);
+  }
+
+  /**
+   * Update weapon UI when weapon changes
+   * @param {Object} weapon - New weapon config
+   */
+  updateWeaponUI(weapon) {
+    if (this.weaponText) {
+      this.weaponText.setText(weapon.displayName);
+
+      // Set text color based on tier
+      const colors = {
+        1: '#ffffff', // White for T1
+        2: '#60a5fa', // Blue for T2
+        3: '#fbbf24', // Gold for T3
+      };
+      this.weaponText.setColor(colors[weapon.tier] || '#ffffff');
+    }
+
+    this.updateTierIndicators(weapon.tier);
+  }
+
+  /**
+   * Update tier indicator pips
+   * @param {number} tier - Current tier (1-3)
+   */
+  updateTierIndicators(tier) {
+    const colors = {
+      active: 0x4ade80, // Green for active
+      inactive: 0x666666, // Gray for inactive
+    };
+
+    this.tierIndicators.forEach((pip, index) => {
+      pip.setFillStyle(index < tier ? colors.active : colors.inactive);
     });
   }
 
@@ -83,11 +146,26 @@ export default class GameScene extends Phaser.Scene {
     // Skip if bullet or enemy is already inactive
     if (!bullet.active || !enemy.active || enemy.isDying) return;
 
+    // For piercing bullets, check if already hit this enemy
+    if (bullet.piercing && bullet.piercedEnemies.has(enemy)) {
+      return;
+    }
+
     // Deal damage to enemy
     enemy.takeDamage(bullet);
 
-    // Deactivate bullet
-    bullet.deactivate();
+    // Apply slow effect if bullet has it
+    const slowEffect = bullet.getSlowEffect?.();
+    if (slowEffect && enemy.applySlow) {
+      enemy.applySlow(slowEffect.amount, slowEffect.duration);
+    }
+
+    // Check if bullet should be deactivated (handles piercing, boomerang, etc.)
+    const shouldDeactivate = bullet.onHitEnemy?.(enemy) ?? true;
+
+    if (shouldDeactivate) {
+      bullet.deactivate();
+    }
   }
 
   update() {

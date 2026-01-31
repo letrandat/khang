@@ -24,6 +24,11 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     // Track if enemy is dying (prevents multiple death triggers)
     this.isDying = false;
+
+    // Slow effect state
+    this.baseSpeed = this.speed;
+    this.slowTimer = null;
+    this.isSlowed = false;
   }
 
   /**
@@ -153,5 +158,46 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
    */
   updateAI(player) {
     // Base class does nothing - override in subclasses
+  }
+
+  /**
+   * Apply slow effect from Ice Gun
+   * @param {number} amount - Slow amount (0.5 = 50% speed reduction)
+   * @param {number} duration - Duration in milliseconds
+   */
+  applySlow(amount, duration) {
+    // Store base speed if not already slowed
+    if (!this.isSlowed) {
+      this.baseSpeed = this.speed;
+    }
+
+    // Apply slow
+    this.isSlowed = true;
+    this.speed = this.baseSpeed * (1 - amount);
+
+    // Visual indicator - blue tint
+    this.setTint(0x00ccff);
+
+    // Clear existing timer
+    if (this.slowTimer) {
+      this.slowTimer.destroy();
+    }
+
+    // Set timer to remove slow
+    this.slowTimer = this.scene.time.delayedCall(duration, () => {
+      this.removeSlow();
+    });
+  }
+
+  /**
+   * Remove slow effect
+   */
+  removeSlow() {
+    if (!this.isSlowed) return;
+
+    this.isSlowed = false;
+    this.speed = this.baseSpeed;
+    this.clearTint();
+    this.slowTimer = null;
   }
 }
