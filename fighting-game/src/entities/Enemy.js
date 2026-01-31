@@ -17,6 +17,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.maxHealth = 30;
     this.speed = 50;
     this.damage = 10;
+    this.points = 10; // Points awarded when killed
 
     // Reference to scene for spawning effects
     this.scene = scene;
@@ -96,7 +97,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     const damageText = this.scene.add.text(this.x, this.y - 30, text, {
       fontSize: isCrit ? '18px' : '14px',
       fontFamily: 'Arial',
-      color: isCrit ? '#ff4444' : '#ffffff',
+      color: isCrit ? '#fbbf24' : '#ffffff',
       stroke: '#000000',
       strokeThickness: 3,
       fontStyle: isCrit ? 'bold' : 'normal',
@@ -130,6 +131,9 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     // Flash white effect
     this.setTint(0xffffff);
+
+    // Emit event for wave system to track kills
+    this.scene.events.emit('enemyKilled', this.points);
 
     // Fade out and destroy
     this.scene.tweens.add({
