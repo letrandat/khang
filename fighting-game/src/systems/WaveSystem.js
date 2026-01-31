@@ -1,5 +1,8 @@
 import Phaser from 'phaser';
 import Grunt from '../entities/enemies/Grunt.js';
+import Flyer from '../entities/enemies/Flyer.js';
+import Shooter from '../entities/enemies/Shooter.js';
+import Dasher from '../entities/enemies/Dasher.js';
 
 /**
  * WaveSystem - Brotato-style wave survival system
@@ -32,6 +35,9 @@ export default class WaveSystem {
     this.spawnMinX = 100;
     this.spawnMaxX = 700;
     this.playerSafeZone = 150; // Don't spawn within 150px of player
+
+    // Enemy bullets group (for Shooter enemies)
+    this.enemyBullets = null;
 
     // Create UI elements
     this.createUI();
@@ -193,22 +199,172 @@ export default class WaveSystem {
     // Generate spawn position avoiding player
     let spawnX = this.getSpawnX(playerX);
 
-    // Create grunt
-    const grunt = new Grunt(this.scene, spawnX, this.groundY);
-    this.enemiesGroup.add(grunt);
+    // Create enemy based on wave number and random selection
+    const enemy = this.createEnemy(spawnX);
+    this.enemiesGroup.add(enemy);
 
     // Add spawn effect (fade in from above)
-    grunt.setAlpha(0);
-    grunt.y -= 30;
+    enemy.setAlpha(0);
+    enemy.y -= 30;
     this.scene.tweens.add({
-      targets: grunt,
+      targets: enemy,
       alpha: 1,
-      y: grunt.y + 30,
+      y: enemy.y + 30,
       duration: 300,
       ease: 'Power2',
     });
 
     this.enemiesToSpawn--;
+  }
+
+  /**
+   * Create an enemy based on current wave and random selection
+   * Wave 1-2: Grunts only
+   * Wave 3-4: Add Flyers
+   * Wave 5-6: Add Shooters
+   * Wave 7+: Add Dashers
+   * @param {number} spawnX - X position to spawn at
+   * @returns {Enemy} The created enemy
+   */
+  createEnemy(spawnX) {
+    // Build available enemy types based on wave
+    const availableTypes = ['grunt'];
+
+    if (this.currentWave >= 3) {
+      availableTypes.push('flyer');
+    }
+    if (this.currentWave >= 5) {
+      availableTypes.push('shooter');
+    }
+    if (this.currentWave >= 7) {
+      availableTypes.push('dasher');
+    }
+
+    // Weighted random selection (higher waves have more variety)
+    // Grunts are always most common, newer types appear less frequently
+    const weights = this.getEnemyWeights(availableTypes);
+    const selectedType = this.weightedRandomSelect(availableTypes, weights);
+
+    // Create the enemy
+    let enemy;
+    switch (selectedType) {
+      case 'flyer':
+        // Flyers spawn higher in the air
+        enemy = new Flyer(this.scene, spawnX, this.groundY - 100);
+        break;
+
+      case 'shooter':
+        enemy = new Shooter(this.scene, spawnX, this.groundY);
+        // Set up enemy bullets group if needed
+        if (!this.enemyBullets) {
+          this.createEnemyBulletsGroup();
+        }
+        enemy.setBulletsGroup(this.enemyBullets);
+        break;
+
+      case 'dasher':
+        enemy = new Dasher(this.scene, spawnX, this.groundY);
+        break;
+
+      case 'grunt':
+      default:
+        enemy = new Grunt(this.scene, spawnX, this.groundY);
+        break;
+    }
+
+    return enemy;
+  }
+
+  /**
+   * Get weights for enemy type selection
+   * @param {string[]} types - Available enemy types
+   * @returns {number[]} Weights for each type
+   */
+  getEnemyWeights(types) {
+    const weights = [];
+    for (const type of types) {
+      switch (type) {
+        case 'grunt':
+          weights.push(40); // Most common
+          break;
+        case 'flyer':
+          weights.push(25);
+          break;
+        case 'shooter':
+          weights.push(20);
+          break;
+        case 'dasher':
+          weights.push(15); // Least common
+          break;
+        default:
+          weights.push(10);
+      }
+    }
+    return weights;
+  }
+
+  /**
+   * Weighted random selection
+   * @param {any[]} items - Items to select from
+   * @param {number[]} weights - Weights for each item
+   * @returns {any} Selected item
+   */
+  weightedRandomSelect(items, weights) {
+    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+    let random = Math.random() * totalWeight;
+
+    for (let i = 0; i < items.length; i++) {
+      random -= weights[i];
+      if (random <= 0) {
+        return items[i];
+      }
+    }
+    return items[items.length - 1];
+  }
+
+  /**
+   * Create enemy bullets physics group for Shooter enemies
+   */
+  createEnemyBulletsGroup() {
+    this.enemyBullets = this.scene.physics.add.group({
+      defaultKey: 'enemy-bullet',
+      maxSize: 50,
+      createCallback: (bullet) => {
+        bullet.setActive(false);
+        bullet.setVisible(false);
+        bullet.body.enable = false;
+      },
+    });
+
+    // Set up collision with player
+    if (this.scene.player) {
+      this.scene.physics.add.overlap(
+        this.scene.player,
+        this.enemyBullets,
+        this.handleEnemyBulletPlayerCollision,
+        null,
+        this
+      );
+    }
+  }
+
+  /**
+   * Handle collision between enemy bullet and player
+   * @param {Player} player - The player
+   * @param {Phaser.Physics.Arcade.Sprite} bullet - Enemy bullet
+   */
+  handleEnemyBulletPlayerCollision(player, bullet) {
+    if (!bullet.active || !player.active) return;
+
+    // Deactivate bullet
+    bullet.setActive(false);
+    bullet.setVisible(false);
+    bullet.body.enable = false;
+
+    // Damage player if they have a takeDamage method
+    if (player.takeDamage) {
+      player.takeDamage(bullet.damage || 15);
+    }
   }
 
   /**
@@ -376,6 +532,14 @@ export default class WaveSystem {
   }
 
   /**
+   * Get enemy bullets group (for external access if needed)
+   * @returns {Phaser.Physics.Arcade.Group} Enemy bullets group
+   */
+  getEnemyBullets() {
+    return this.enemyBullets;
+  }
+
+  /**
    * Clean up timers and events
    */
   destroy() {
@@ -384,6 +548,9 @@ export default class WaveSystem {
     }
     if (this.countdownTimer) {
       this.countdownTimer.destroy();
+    }
+    if (this.enemyBullets) {
+      this.enemyBullets.destroy(true);
     }
     this.scene.events.off('enemyKilled', this.onEnemyKilled, this);
   }

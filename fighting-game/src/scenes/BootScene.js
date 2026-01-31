@@ -39,6 +39,34 @@ export default class BootScene extends Phaser.Scene {
     gruntGraphics.generateTexture('enemy-grunt', 32, 48);
     gruntGraphics.destroy();
 
+    // Enemy flyer placeholder - purple rectangle 32x32 (for Task 7)
+    const flyerGraphics = this.make.graphics({ x: 0, y: 0, add: false });
+    flyerGraphics.fillStyle(0x9b59b6, 1);
+    flyerGraphics.fillRect(0, 0, 32, 32);
+    flyerGraphics.generateTexture('enemy-flyer', 32, 32);
+    flyerGraphics.destroy();
+
+    // Enemy shooter placeholder - orange rectangle 32x48 (for Task 7)
+    const shooterGraphics = this.make.graphics({ x: 0, y: 0, add: false });
+    shooterGraphics.fillStyle(0xff6600, 1);
+    shooterGraphics.fillRect(0, 0, 32, 48);
+    shooterGraphics.generateTexture('enemy-shooter', 32, 48);
+    shooterGraphics.destroy();
+
+    // Enemy dasher placeholder - green rectangle 28x48 (for Task 7)
+    const dasherGraphics = this.make.graphics({ x: 0, y: 0, add: false });
+    dasherGraphics.fillStyle(0x00cc44, 1);
+    dasherGraphics.fillRect(0, 0, 28, 48);
+    dasherGraphics.generateTexture('enemy-dasher', 28, 48);
+    dasherGraphics.destroy();
+
+    // Enemy bullet placeholder - red circle 6x6 (for Shooter enemy)
+    const enemyBulletGraphics = this.make.graphics({ x: 0, y: 0, add: false });
+    enemyBulletGraphics.fillStyle(0xff0000, 1);
+    enemyBulletGraphics.fillCircle(3, 3, 3);
+    enemyBulletGraphics.generateTexture('enemy-bullet', 6, 6);
+    enemyBulletGraphics.destroy();
+
     // Create all weapon projectile textures
     this.createProjectileTextures();
   }
