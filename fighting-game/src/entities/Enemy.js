@@ -47,31 +47,32 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
-   * Take damage from a bullet
+   * Take damage from a bullet or damage info object
    * Applies headshot multiplier if hit in top 25% of body
-   * @param {object} bullet - The bullet that hit this enemy
+   * @param {object} damageInfo - Bullet object or {damage, isCrit, y?}
    * @returns {object} Damage info for UI display
    */
-  takeDamage(bullet) {
+  takeDamage(damageInfo) {
     if (this.isDying) return null;
 
-    // Get base damage from bullet
-    let damage = bullet.damage;
+    // Get base damage
+    let damage = damageInfo.damage;
     let isHeadshot = false;
     let displayText = damage.toString();
+    const isCrit = damageInfo.isCrit || false;
 
-    // Check for headshot
-    if (this.isHeadshot(bullet.y)) {
+    // Check for headshot only if y position is provided (direct bullet hit)
+    if (damageInfo.y !== undefined && this.isHeadshot(damageInfo.y)) {
       isHeadshot = true;
       damage = Math.floor(damage * 1.5);
 
       // Display text based on whether it was also a crit (jump shot)
-      if (bullet.isCrit) {
+      if (isCrit) {
         displayText = `${damage} AERIAL HEADSHOT!`;
       } else {
         displayText = `${damage} HEADSHOT!`;
       }
-    } else if (bullet.isCrit) {
+    } else if (isCrit) {
       displayText = `${damage} CRIT!`;
     }
 
@@ -89,7 +90,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     return {
       damage,
       isHeadshot,
-      isCrit: bullet.isCrit,
+      isCrit,
     };
   }
 
