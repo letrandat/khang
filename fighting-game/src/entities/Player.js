@@ -15,8 +15,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.moveSpeed = 200;
     this.jumpVelocity = -400;
 
-    // Scale sprite 2x (display: 64x64, physics body scales with it)
+    // Scale sprite 2x (display: 64x64)
     this.setScale(2);
+
+    // Trim physics body to match visible sprite area — the frame has transparent
+    // padding at the bottom, so without this the slime appears to float above ground
+    this.body.setSize(32, 26);
+    this.body.setOffset(0, 6);
 
     // Track facing direction (1 = right, -1 = left)
     this.facingDirection = 1;
@@ -121,11 +126,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     if (leftPressed) {
       this.setVelocityX(-this.moveSpeed);
       this.facingDirection = -1;
-      this.setFlipX(true);
+      this.setFlipX(false);
     } else if (rightPressed) {
       this.setVelocityX(this.moveSpeed);
       this.facingDirection = 1;
-      this.setFlipX(false);
+      this.setFlipX(true);
     } else {
       this.setVelocityX(0);
     }
