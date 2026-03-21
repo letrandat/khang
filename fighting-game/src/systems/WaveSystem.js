@@ -52,46 +52,44 @@ export default class WaveSystem {
   }
 
   /**
-   * Create UI elements for wave display
+   * Create pixel-art badge UI for wave and enemy counts (top-center cluster)
    */
   createUI() {
-    // Wave number display (top-left)
-    this.waveText = this.scene.add.text(20, 30, 'Wave 1', {
-      fontSize: '28px',
-      fontFamily: 'Arial',
-      color: '#ffffff',
+    const BG = 0x000000;
+    const BORDER = 0xffffff;
+    const BADGE_Y = 22;
+    const BADGE_H = 28;
+    const BADGE_W = 178;
+
+    // === Wave badge (left: x 220–398, center 309) ===
+    this.scene.add.rectangle(309, BADGE_Y, BADGE_W, BADGE_H, BG, 0.85)
+      .setStrokeStyle(2, BORDER).setDepth(199).setScrollFactor(0);
+    this.scene.add.text(226, BADGE_Y, 'WAVE>>', {
+      fontFamily: '"VT323"', fontSize: '16px', color: 'rgba(255,255,255,0.7)',
+    }).setOrigin(0, 0.5).setDepth(201).setScrollFactor(0);
+    this.waveText = this.scene.add.text(292, BADGE_Y, '1', {
+      fontFamily: '"Press Start 2P"', fontSize: '11px', color: '#FF8C00',
+    }).setOrigin(0, 0.5).setDepth(201).setScrollFactor(0);
+
+    // === Enemy badge (right: x 402–580, center 491) ===
+    this.scene.add.rectangle(491, BADGE_Y, BADGE_W, BADGE_H, BG, 0.85)
+      .setStrokeStyle(2, BORDER).setDepth(199).setScrollFactor(0);
+    this.scene.add.text(408, BADGE_Y, 'ENEMIES:', {
+      fontFamily: '"VT323"', fontSize: '16px', color: 'rgba(255,255,255,0.7)',
+    }).setOrigin(0, 0.5).setDepth(201).setScrollFactor(0);
+    this.enemiesText = this.scene.add.text(487, BADGE_Y, '0', {
+      fontFamily: '"Press Start 2P"', fontSize: '11px', color: '#FF8C00',
+    }).setOrigin(0, 0.5).setDepth(201).setScrollFactor(0);
+
+    // === Countdown (center screen, hidden initially) ===
+    this.countdownText = this.scene.add.text(400, 300, '', {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '48px',
+      color: '#FF8C00',
       stroke: '#000000',
       strokeThickness: 4,
-      fontStyle: 'bold',
     });
-    this.waveText.setOrigin(0, 0.5);
-    this.waveText.setDepth(200);
-    this.waveText.setScrollFactor(0); // Fixed to camera
-
-    // Enemies remaining display (top right)
-    this.enemiesText = this.scene.add.text(750, 30, 'Enemies: 0', {
-      fontSize: '20px',
-      fontFamily: 'Arial',
-      color: '#ff6b6b',
-      stroke: '#000000',
-      strokeThickness: 3,
-    });
-    this.enemiesText.setOrigin(1, 0.5);
-    this.enemiesText.setDepth(200);
-    this.enemiesText.setScrollFactor(0);
-
-    // Countdown display (center screen, hidden initially)
-    this.countdownText = this.scene.add.text(400, 300, '', {
-      fontSize: '72px',
-      fontFamily: 'Arial',
-      color: '#fbbf24',
-      stroke: '#000000',
-      strokeThickness: 6,
-      fontStyle: 'bold',
-    });
-    this.countdownText.setOrigin(0.5);
-    this.countdownText.setDepth(200);
-    this.countdownText.setScrollFactor(0);
+    this.countdownText.setOrigin(0.5).setDepth(200).setScrollFactor(0);
     this.countdownText.setVisible(false);
   }
 
@@ -119,7 +117,7 @@ export default class WaveSystem {
     this.enemiesToSpawn = enemyCount;
 
     // Update UI
-    this.waveText.setText(`Wave ${this.currentWave}`);
+    this.waveText.setText(this.currentWave.toString());
     this.updateEnemiesUI();
     this.countdownText.setVisible(false);
 
@@ -134,13 +132,12 @@ export default class WaveSystem {
    * Show wave start announcement
    */
   showWaveAnnouncement() {
-    const announcement = this.scene.add.text(400, 200, `WAVE ${this.currentWave}`, {
-      fontSize: '48px',
-      fontFamily: 'Arial',
-      color: '#ffffff',
+    const announcement = this.scene.add.text(400, 220, `WAVE ${this.currentWave}`, {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '32px',
+      color: '#FF8C00',
       stroke: '#000000',
-      strokeThickness: 5,
-      fontStyle: 'bold',
+      strokeThickness: 4,
     });
     announcement.setOrigin(0.5);
     announcement.setDepth(200);
@@ -424,7 +421,7 @@ export default class WaveSystem {
    * Update the enemies remaining UI
    */
   updateEnemiesUI() {
-    this.enemiesText.setText(`Enemies: ${this.enemiesRemaining}`);
+    this.enemiesText.setText(this.enemiesRemaining.toString());
   }
 
   /**
@@ -447,13 +444,12 @@ export default class WaveSystem {
    * Show wave complete message
    */
   showWaveCompleteMessage() {
-    const message = this.scene.add.text(400, 200, 'WAVE COMPLETE!', {
-      fontSize: '36px',
-      fontFamily: 'Arial',
-      color: '#4ade80',
+    const message = this.scene.add.text(400, 220, 'WAVE COMPLETE!', {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '24px',
+      color: '#00ff88',
       stroke: '#000000',
       strokeThickness: 4,
-      fontStyle: 'bold',
     });
     message.setOrigin(0.5);
     message.setDepth(200);

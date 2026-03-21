@@ -54,6 +54,9 @@ export default class GameScene extends Phaser.Scene {
     // Create health bar UI
     this.createHealthUI();
 
+    // Corner bracket decorations
+    this.createCornerBrackets();
+
     // Listen for weapon changes
     this.events.on('weaponChanged', this.updateWeaponUI, this);
 
@@ -72,143 +75,130 @@ export default class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Create weapon name and tier UI display
+   * Create pixel-art weapon panel (bottom-center cluster)
    */
   createWeaponUI() {
-    // Weapon display background
-    this.weaponUIBg = this.add.rectangle(400, 570, 200, 30, 0x000000, 0.6);
-    this.weaponUIBg.setDepth(199);
-    this.weaponUIBg.setScrollFactor(0);
+    const CX = 400;
+    const W = 360;
+    const LEFT = CX - W / 2; // 220
+    const Y = 81;
+    const RIGHT_W = 54;
+    const RIGHT_CX = LEFT + W - RIGHT_W / 2; // 553
 
-    // Weapon name and tier text
-    const currentWeapon = this.weaponSystem.getCurrentWeapon();
-    this.weaponText = this.add.text(400, 570, currentWeapon.displayName, {
-      fontSize: '16px',
-      fontFamily: 'Arial',
-      color: '#ffffff',
-      stroke: '#000000',
-      strokeThickness: 2,
-    });
-    this.weaponText.setOrigin(0.5);
-    this.weaponText.setDepth(200);
-    this.weaponText.setScrollFactor(0);
+    // Panel background
+    this.weaponUIBg = this.add.rectangle(CX, Y, W, 30, 0x000000, 0.85);
+    this.weaponUIBg.setStrokeStyle(2, 0xffffff);
+    this.weaponUIBg.setDepth(199).setScrollFactor(0);
 
-    // Tier indicators (visual pips)
+    // Right section (tier) — blue-tinted bg
+    this.add.rectangle(RIGHT_CX, Y, RIGHT_W, 30, 0x00f0ff, 0.07)
+      .setDepth(199).setScrollFactor(0);
+
+    // Divider line between left and right sections
+    const divGfx = this.add.graphics();
+    divGfx.lineStyle(2, 0xffffff, 1.0);
+    divGfx.lineBetween(LEFT + W - RIGHT_W, Y - 15, LEFT + W - RIGHT_W, Y + 15);
+    divGfx.setDepth(200).setScrollFactor(0);
+
+    // Tier pips (3 pixel squares)
     this.tierIndicators = [];
     for (let i = 0; i < 3; i++) {
-      const pip = this.add.circle(350 + i * 15, 585, 4, 0x666666);
-      pip.setDepth(200);
-      pip.setScrollFactor(0);
+      const pip = this.add.rectangle(LEFT + 16 + i * 13, Y, 8, 8, 0x1a1a1a);
+      pip.setStrokeStyle(1, 0xffffff, 0.6);
+      pip.setDepth(200).setScrollFactor(0);
       this.tierIndicators.push(pip);
     }
 
-    // Update tier indicators for initial weapon
+    // Weapon name
+    const currentWeapon = this.weaponSystem.getCurrentWeapon();
+    this.weaponText = this.add.text(LEFT + 58, Y, currentWeapon.displayName, {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '9px',
+      color: '#00f0ff',
+    });
+    this.weaponText.setOrigin(0, 0.5).setDepth(201).setScrollFactor(0);
+
+    // Tier label in right section
+    this.tierNumText = this.add.text(RIGHT_CX, Y, `T${currentWeapon.tier}`, {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '11px',
+      color: '#00f0ff',
+    });
+    this.tierNumText.setOrigin(0.5).setDepth(201).setScrollFactor(0);
+
     this.updateTierIndicators(currentWeapon.tier);
   }
 
   /**
    * Update weapon UI when weapon changes
-   * @param {Object} weapon - New weapon config
    */
   updateWeaponUI(weapon) {
     if (this.weaponText) {
       this.weaponText.setText(weapon.displayName);
-
-      // Set text color based on tier
-      const colors = {
-        1: '#ffffff', // White for T1
-        2: '#60a5fa', // Blue for T2
-        3: '#fbbf24', // Gold for T3
-      };
-      this.weaponText.setColor(colors[weapon.tier] || '#ffffff');
     }
-
+    if (this.tierNumText) {
+      this.tierNumText.setText(`T${weapon.tier}`);
+    }
     this.updateTierIndicators(weapon.tier);
   }
 
   /**
-   * Update tier indicator pips
-   * @param {number} tier - Current tier (1-3)
+   * Update tier indicator pips (pixel squares)
    */
   updateTierIndicators(tier) {
-    const colors = {
-      active: 0x4ade80, // Green for active
-      inactive: 0x666666, // Gray for inactive
-    };
-
     this.tierIndicators.forEach((pip, index) => {
-      pip.setFillStyle(index < tier ? colors.active : colors.inactive);
+      pip.setFillStyle(index < tier ? 0x00ff88 : 0x1a1a1a);
     });
   }
 
   /**
-   * Create health bar UI at top of screen
+   * Create segmented pixel-art HP bar (top-center cluster)
    */
   createHealthUI() {
-    const barX = 400;
-    const barY = 60;
-    const barWidth = 200;
-    const barHeight = 20;
+    const CX = 400;
+    const W = 360;
+    const LEFT = CX - W / 2; // 220
+    const Y = 51;
+    const NUM_SEGS = 10;
 
-    // Health bar background (dark gray)
-    this.healthBarBg = this.add.rectangle(barX, barY, barWidth, barHeight, 0x333333);
-    this.healthBarBg.setDepth(199);
-    this.healthBarBg.setScrollFactor(0);
+    // HP bar background
+    this.healthBarBg = this.add.rectangle(CX, Y, W, 22, 0x000000, 0.85);
+    this.healthBarBg.setStrokeStyle(2, 0xffffff);
+    this.healthBarBg.setDepth(199).setScrollFactor(0);
 
-    // Health bar fill (green at full health)
-    this.healthBarFill = this.add.rectangle(
-      barX - barWidth / 2,
-      barY,
-      barWidth,
-      barHeight - 4,
-      0x44ff44
-    );
-    this.healthBarFill.setOrigin(0, 0.5);
-    this.healthBarFill.setDepth(200);
-    this.healthBarFill.setScrollFactor(0);
+    // "HP" label
+    this.add.text(LEFT + 6, Y, 'HP', {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '9px',
+      color: '#FF0000',
+    }).setOrigin(0, 0.5).setDepth(201).setScrollFactor(0);
 
-    // Health bar border
-    this.healthBarBorder = this.add.rectangle(barX, barY, barWidth + 4, barHeight + 4);
-    this.healthBarBorder.setStrokeStyle(2, 0xffffff);
-    this.healthBarBorder.setDepth(201);
-    this.healthBarBorder.setScrollFactor(0);
+    // Segmented HP blocks
+    const SEG_START = LEFT + 38;
+    const SEG_AREA_W = W - 46;
+    const SEG_GAP = 2;
+    const SEG_W = Math.floor((SEG_AREA_W - (NUM_SEGS - 1) * SEG_GAP) / NUM_SEGS);
 
-    // Health text
-    this.healthText = this.add.text(barX, barY, '100 / 100', {
-      fontSize: '14px',
-      fontFamily: 'Arial',
-      color: '#ffffff',
-      stroke: '#000000',
-      strokeThickness: 2,
-    });
-    this.healthText.setOrigin(0.5);
-    this.healthText.setDepth(202);
-    this.healthText.setScrollFactor(0);
+    this.hpSegments = [];
+    for (let i = 0; i < NUM_SEGS; i++) {
+      const segCX = SEG_START + i * (SEG_W + SEG_GAP) + SEG_W / 2;
+      const seg = this.add.rectangle(segCX, Y, SEG_W, 12, 0x00ff88);
+      seg.setDepth(200).setScrollFactor(0);
+      this.hpSegments.push(seg);
+    }
   }
 
   /**
-   * Update health bar UI
-   * @param {number} currentHealth - Current health
-   * @param {number} maxHealth - Max health
+   * Update HP segments based on current health
    */
   updateHealthUI(currentHealth, maxHealth) {
-    const healthPercent = currentHealth / maxHealth;
-    const barWidth = 200;
-
-    // Update fill width
-    this.healthBarFill.setDisplaySize(barWidth * healthPercent, 16);
-
-    // Update color based on health percentage
-    if (healthPercent > 0.6) {
-      this.healthBarFill.setFillStyle(0x44ff44); // Green when healthy
-    } else if (healthPercent > 0.3) {
-      this.healthBarFill.setFillStyle(0xffaa00); // Orange when damaged
-    } else {
-      this.healthBarFill.setFillStyle(0xff4444); // Red when critical
-    }
-
-    // Update text
-    this.healthText.setText(`${currentHealth} / ${maxHealth}`);
+    if (!this.hpSegments) return;
+    const pct = currentHealth / maxHealth;
+    const filled = Math.ceil(pct * this.hpSegments.length);
+    const color = pct > 0.6 ? 0x00ff88 : pct > 0.3 ? 0xff8c00 : 0xff0000;
+    this.hpSegments.forEach((seg, i) => {
+      seg.setFillStyle(i < filled ? color : 0x220000);
+    });
   }
 
   /**
@@ -278,6 +268,29 @@ export default class GameScene extends Phaser.Scene {
     if (shouldDeactivate) {
       bullet.deactivate();
     }
+  }
+
+  /**
+   * Draw L-shaped corner brackets at all 4 screen corners
+   */
+  createCornerBrackets() {
+    const gfx = this.add.graphics();
+    gfx.lineStyle(4, 0xffffff, 0.4);
+    const m = 8;
+    const s = 24;
+    [
+      [m, m, 1, 1],
+      [800 - m, m, -1, 1],
+      [m, 600 - m, 1, -1],
+      [800 - m, 600 - m, -1, -1],
+    ].forEach(([x, y, dx, dy]) => {
+      gfx.beginPath();
+      gfx.moveTo(x + dx * s, y);
+      gfx.lineTo(x, y);
+      gfx.lineTo(x, y + dy * s);
+      gfx.strokePath();
+    });
+    gfx.setDepth(205).setScrollFactor(0);
   }
 
   update() {
