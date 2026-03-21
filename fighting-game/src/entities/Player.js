@@ -15,8 +15,14 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.moveSpeed = 200;
     this.jumpVelocity = -400;
 
+    // Scale sprite 2x (display: 64x64, physics body scales with it)
+    this.setScale(2);
+
     // Track facing direction (1 = right, -1 = left)
     this.facingDirection = 1;
+
+    // Set up animations
+    this.createAnimations();
 
     // Health system
     this.maxHealth = 100;
@@ -60,11 +66,49 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
+   * Register idle and jump animations from the 7-frame sprite sheet.
+   * All 7 frames form the jump arc — frame 0 is used for idle/walk.
+   */
+  createAnimations() {
+    const anims = this.scene.anims;
+
+    if (!anims.exists('player-idle')) {
+      anims.create({
+        key: 'player-idle',
+        frames: [{ key: 'player', frame: 0 }],
+        frameRate: 1,
+        repeat: -1,
+      });
+    }
+
+    if (!anims.exists('player-jump')) {
+      anims.create({
+        key: 'player-jump',
+        frames: anims.generateFrameNumbers('player', { start: 0, end: 6 }),
+        frameRate: 12,
+        repeat: 0, // play once, hold last frame
+      });
+    }
+  }
+
+  /**
    * Update method called each frame to handle player input
    */
   update() {
     this.handleMovement();
     this.handleJump();
+    this.updateAnimation();
+  }
+
+  /**
+   * Play jump animation when airborne, idle frame when grounded.
+   */
+  updateAnimation() {
+    if (this.isAirborne()) {
+      this.play('player-jump', true);
+    } else {
+      this.play('player-idle', true);
+    }
   }
 
   /**

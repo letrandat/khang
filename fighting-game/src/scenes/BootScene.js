@@ -6,17 +6,17 @@ export default class BootScene extends Phaser.Scene {
   }
 
   preload() {
-    // Create placeholder textures programmatically
+    // Load player sprite sheet (96x96, 7 frames of 32x32 — full jump animation)
+    this.load.spritesheet('player', 'assets/player.png', {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
+
+    // Create remaining placeholder textures programmatically
     this.createPlaceholderTextures();
   }
 
   createPlaceholderTextures() {
-    // Player placeholder - blue rectangle 32x48
-    const playerGraphics = this.make.graphics({ x: 0, y: 0, add: false });
-    playerGraphics.fillStyle(0x4488ff, 1);
-    playerGraphics.fillRect(0, 0, 32, 48);
-    playerGraphics.generateTexture('player', 32, 48);
-    playerGraphics.destroy();
 
     // Ground placeholder - brown rectangle full-width x 32
     const groundGraphics = this.make.graphics({ x: 0, y: 0, add: false });
