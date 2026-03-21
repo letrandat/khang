@@ -18,10 +18,12 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     // Scale sprite 2x (display: 64x64)
     this.setScale(2);
 
-    // Trim physics body to match visible sprite area — the frame has transparent
-    // padding at the bottom, so without this the slime appears to float above ground
+    // Align physics body to the slime's visible feet.
+    // setSize is in local (pre-scale) pixels; setOffset is in world pixels.
+    // Negative y offset shifts the body UP so the sprite's visual bottom
+    // (which has transparent padding) lands exactly on the ground.
     this.body.setSize(32, 26);
-    this.body.setOffset(0, 6);
+    this.body.setOffset(0, -6);
 
     // Track facing direction (1 = right, -1 = left)
     this.facingDirection = 1;
