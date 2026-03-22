@@ -16,15 +16,18 @@ export default class Flyer extends Enemy {
     this.damage = 8;
     this.points = 15; // More points due to difficulty targeting
 
+    // Scale sprite 2x (display: 64x64)
+    this.setScale(2);
+
     // Configure physics body
     this.setCollideWorldBounds(true);
 
     // Disable gravity for flying
     this.body.setAllowGravity(false);
 
-    // Tighten hitbox to the bat's visible body (bat art has transparent padding)
+    // Hitbox in local (pre-scale) pixels; offset in world pixels (doubled for 2x scale)
     this.body.setSize(20, 14);
-    this.body.setOffset(6, 10);
+    this.body.setOffset(12, 20);
 
     // Register and play wing-flap animation
     if (!scene.anims.exists('bat-fly')) {
