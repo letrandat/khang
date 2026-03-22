@@ -18,6 +18,12 @@ export default class BootScene extends Phaser.Scene {
       frameHeight: 32,
     });
 
+    // Load dyno sprite sheet (96x128, 9 frames of 32x32 — walk cycle)
+    this.load.spritesheet('dyno', 'assets/dyno.png', {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
+
     // Create remaining placeholder textures programmatically
     this.createPlaceholderTextures();
   }
@@ -44,13 +50,6 @@ export default class BootScene extends Phaser.Scene {
     gruntGraphics.fillRect(0, 0, 32, 48);
     gruntGraphics.generateTexture('enemy-grunt', 32, 48);
     gruntGraphics.destroy();
-
-    // Enemy shooter placeholder - orange rectangle 32x48 (for Task 7)
-    const shooterGraphics = this.make.graphics({ x: 0, y: 0, add: false });
-    shooterGraphics.fillStyle(0xff6600, 1);
-    shooterGraphics.fillRect(0, 0, 32, 48);
-    shooterGraphics.generateTexture('enemy-shooter', 32, 48);
-    shooterGraphics.destroy();
 
     // Enemy dasher placeholder - green rectangle 28x48 (for Task 7)
     const dasherGraphics = this.make.graphics({ x: 0, y: 0, add: false });

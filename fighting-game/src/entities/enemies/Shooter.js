@@ -7,7 +7,7 @@ import Enemy from '../Enemy.js';
  */
 export default class Shooter extends Enemy {
   constructor(scene, x, y) {
-    super(scene, x, y, 'enemy-shooter');
+    super(scene, x, y, 'dyno');
 
     // Shooter-specific stats
     this.health = 25;
@@ -16,13 +16,26 @@ export default class Shooter extends Enemy {
     this.damage = 15; // Bullet damage
     this.points = 20;
 
+    // Scale sprite 2x (display: 64x64)
+    this.setScale(2);
+
     // Configure physics body
     this.setCollideWorldBounds(true);
 
-    // Set body size LARGER than visual for generous hitbox (40x52 vs 32x48)
-    this.body.setSize(40, 52);
-    // Center the larger hitbox on the sprite
-    this.body.setOffset(-4, -2);
+    // Hitbox in local pixels; offset in world pixels
+    this.body.setSize(20, 26);
+    this.body.setOffset(8, 4);
+
+    // Register and play walk animation
+    if (!scene.anims.exists('dyno-walk')) {
+      scene.anims.create({
+        key: 'dyno-walk',
+        frames: scene.anims.generateFrameNumbers('dyno', { start: 0, end: 8 }),
+        frameRate: 9,
+        repeat: -1,
+      });
+    }
+    this.play('dyno-walk');
 
     // Shooting parameters
     this.fireRate = 2000; // Fire every 2 seconds
@@ -64,8 +77,8 @@ export default class Shooter extends Enemy {
       this.setVelocityX(0);
     }
 
-    // Flip sprite to face player
-    this.setFlipX(directionX < 0);
+    // Flip sprite to face player (dyno faces left by default)
+    this.setFlipX(directionX > 0);
 
     // Check if can fire
     const currentTime = this.scene.time.now;
