@@ -12,6 +12,12 @@ export default class BootScene extends Phaser.Scene {
       frameHeight: 32,
     });
 
+    // Load bat sprite sheet (32x64, 2 frames of 32x32 — wing flap animation)
+    this.load.spritesheet('bat', 'assets/bat.png', {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
+
     // Create remaining placeholder textures programmatically
     this.createPlaceholderTextures();
   }
@@ -38,13 +44,6 @@ export default class BootScene extends Phaser.Scene {
     gruntGraphics.fillRect(0, 0, 32, 48);
     gruntGraphics.generateTexture('enemy-grunt', 32, 48);
     gruntGraphics.destroy();
-
-    // Enemy flyer placeholder - purple rectangle 32x32 (for Task 7)
-    const flyerGraphics = this.make.graphics({ x: 0, y: 0, add: false });
-    flyerGraphics.fillStyle(0x9b59b6, 1);
-    flyerGraphics.fillRect(0, 0, 32, 32);
-    flyerGraphics.generateTexture('enemy-flyer', 32, 32);
-    flyerGraphics.destroy();
 
     // Enemy shooter placeholder - orange rectangle 32x48 (for Task 7)
     const shooterGraphics = this.make.graphics({ x: 0, y: 0, add: false });

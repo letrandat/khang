@@ -7,7 +7,7 @@ import Enemy from '../Enemy.js';
  */
 export default class Flyer extends Enemy {
   constructor(scene, x, y) {
-    super(scene, x, y, 'enemy-flyer');
+    super(scene, x, y, 'bat');
 
     // Flyer-specific stats
     this.health = 20;
@@ -22,10 +22,20 @@ export default class Flyer extends Enemy {
     // Disable gravity for flying
     this.body.setAllowGravity(false);
 
-    // Set body size LARGER than visual for generous hitbox (40x40 vs 32x32)
-    this.body.setSize(40, 40);
-    // Center the larger hitbox on the sprite
-    this.body.setOffset(-4, -4);
+    // Tighten hitbox to the bat's visible body (bat art has transparent padding)
+    this.body.setSize(20, 14);
+    this.body.setOffset(6, 10);
+
+    // Register and play wing-flap animation
+    if (!scene.anims.exists('bat-fly')) {
+      scene.anims.create({
+        key: 'bat-fly',
+        frames: scene.anims.generateFrameNumbers('bat', { start: 0, end: 1 }),
+        frameRate: 8,
+        repeat: -1,
+      });
+    }
+    this.play('bat-fly');
 
     // Sine wave movement parameters
     this.bobAmplitude = 30; // How far up/down to bob
@@ -65,7 +75,7 @@ export default class Flyer extends Enemy {
     // Set Y position based on base + bob offset
     this.y = this.baseY + bobOffset;
 
-    // Flip sprite to face movement direction
-    this.setFlipX(directionX < 0);
+    // Flip sprite to face movement direction (bat faces left by default)
+    this.setFlipX(directionX > 0);
   }
 }
