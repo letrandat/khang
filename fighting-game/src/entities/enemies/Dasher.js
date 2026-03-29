@@ -3,11 +3,15 @@ import Enemy from '../Enemy.js';
 /**
  * Dasher enemy type - fast charging enemy
  * Charges at player quickly with brief pauses between charges
- * Uses 'enemy-dasher' texture (green rectangle 28x48)
+ * Uses 'dasher' spritesheet (128x128, 16 frames of 32x32)
+ * Row 0 (frames 0-3): walk/idle
+ * Row 1 (frames 4-7): preparing charge
+ * Row 2 (frames 8-11): charging
+ * Row 3 (frames 12-15): recovering
  */
 export default class Dasher extends Enemy {
   constructor(scene, x, y) {
-    super(scene, x, y, 'enemy-dasher');
+    super(scene, x, y, 'dasher');
 
     // Dasher-specific stats
     this.health = 35;
@@ -17,13 +21,48 @@ export default class Dasher extends Enemy {
     this.damage = 15;
     this.points = 25;
 
-    // Configure physics body
-    this.setCollideWorldBounds(true);
+    // Scale sprite 2x (display: 64x64)
+    this.setScale(2);
 
-    // Set body size LARGER than visual for generous hitbox (36x52 vs 28x48)
-    this.body.setSize(36, 52);
-    // Center the larger hitbox on the sprite
-    this.body.setOffset(-4, -2);
+    // Configure physics body (unscaled coords; world size = 2x these values)
+    this.setCollideWorldBounds(true);
+    this.body.setSize(20, 26);
+    this.body.setOffset(6, 3);
+
+    // Register animations (guarded so multiple instances don't re-register)
+    if (!scene.anims.exists('dasher-walk')) {
+      scene.anims.create({
+        key: 'dasher-walk',
+        frames: scene.anims.generateFrameNumbers('dasher', { start: 0, end: 3 }),
+        frameRate: 8,
+        repeat: -1,
+      });
+    }
+    if (!scene.anims.exists('dasher-prepare')) {
+      scene.anims.create({
+        key: 'dasher-prepare',
+        frames: scene.anims.generateFrameNumbers('dasher', { start: 4, end: 7 }),
+        frameRate: 12,
+        repeat: -1,
+      });
+    }
+    if (!scene.anims.exists('dasher-charge')) {
+      scene.anims.create({
+        key: 'dasher-charge',
+        frames: scene.anims.generateFrameNumbers('dasher', { start: 8, end: 11 }),
+        frameRate: 16,
+        repeat: -1,
+      });
+    }
+    if (!scene.anims.exists('dasher-recover')) {
+      scene.anims.create({
+        key: 'dasher-recover',
+        frames: scene.anims.generateFrameNumbers('dasher', { start: 12, end: 15 }),
+        frameRate: 6,
+        repeat: -1,
+      });
+    }
+    this.play('dasher-walk');
 
     // Charging state
     this.state = 'idle'; // 'idle', 'preparing', 'charging', 'recovering'
@@ -54,6 +93,7 @@ export default class Dasher extends Enemy {
         // Walk slowly toward player, then start preparing to charge
         this.setVelocityX(directionX * this.walkSpeed);
         this.setFlipX(directionX < 0);
+        if (this.anims.currentAnim?.key !== 'dasher-walk') this.play('dasher-walk');
 
         // Start charge preparation
         this.startPrepare(directionX);
@@ -84,6 +124,7 @@ export default class Dasher extends Enemy {
   startPrepare(direction) {
     this.state = 'preparing';
     this.chargeDirection = direction;
+    this.play('dasher-prepare');
 
     // Store original tint
     this.originalTint = this.tintTopLeft;
@@ -119,6 +160,7 @@ export default class Dasher extends Enemy {
    */
   startCharge() {
     this.state = 'charging';
+    this.play('dasher-charge');
 
     // Clear any flash tween
     if (this.flashTween) {
@@ -139,6 +181,7 @@ export default class Dasher extends Enemy {
   startRecover() {
     this.state = 'recovering';
     this.setVelocityX(0);
+    this.play('dasher-recover');
 
     // After recovery, return to idle
     this.stateTimer = this.scene.time.delayedCall(this.recoverDuration, () => {

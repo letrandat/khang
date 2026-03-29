@@ -30,6 +30,12 @@ export default class BootScene extends Phaser.Scene {
       frameHeight: 32,
     });
 
+    // Load dasher sprite sheet (128x128, 16 frames of 32x32 — 4 states x 4 frames)
+    this.load.spritesheet('dasher', 'assets/dasher.png', {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
+
     // Create remaining placeholder textures programmatically
     this.createPlaceholderTextures();
   }
@@ -49,13 +55,6 @@ export default class BootScene extends Phaser.Scene {
     platformGraphics.fillRect(0, 0, 200, 20);
     platformGraphics.generateTexture('platform', 200, 20);
     platformGraphics.destroy();
-
-    // Enemy dasher placeholder - green rectangle 28x48 (for Task 7)
-    const dasherGraphics = this.make.graphics({ x: 0, y: 0, add: false });
-    dasherGraphics.fillStyle(0x00cc44, 1);
-    dasherGraphics.fillRect(0, 0, 28, 48);
-    dasherGraphics.generateTexture('enemy-dasher', 28, 48);
-    dasherGraphics.destroy();
 
     // Enemy bullet placeholder - red circle 6x6 (for Shooter enemy)
     const enemyBulletGraphics = this.make.graphics({ x: 0, y: 0, add: false });
