@@ -24,6 +24,12 @@ export default class BootScene extends Phaser.Scene {
       frameHeight: 32,
     });
 
+    // Load grunt sprite sheet (32x64, 2 frames of 32x32 — walk cycle)
+    this.load.spritesheet('grunt', 'assets/grunt.png', {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
+
     // Create remaining placeholder textures programmatically
     this.createPlaceholderTextures();
   }
@@ -43,13 +49,6 @@ export default class BootScene extends Phaser.Scene {
     platformGraphics.fillRect(0, 0, 200, 20);
     platformGraphics.generateTexture('platform', 200, 20);
     platformGraphics.destroy();
-
-    // Enemy grunt placeholder - red rectangle 32x48 (for Task 4)
-    const gruntGraphics = this.make.graphics({ x: 0, y: 0, add: false });
-    gruntGraphics.fillStyle(0xff4444, 1);
-    gruntGraphics.fillRect(0, 0, 32, 48);
-    gruntGraphics.generateTexture('enemy-grunt', 32, 48);
-    gruntGraphics.destroy();
 
     // Enemy dasher placeholder - green rectangle 28x48 (for Task 7)
     const dasherGraphics = this.make.graphics({ x: 0, y: 0, add: false });
