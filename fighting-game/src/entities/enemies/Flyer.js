@@ -34,7 +34,7 @@ export default class Flyer extends Enemy {
       scene.anims.create({
         key: 'bat-fly',
         frames: scene.anims.generateFrameNumbers('bat', { start: 0, end: 1 }),
-        frameRate: 4,
+        frameRate: 2,
         repeat: -1,
       });
     }
