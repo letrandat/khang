@@ -21,8 +21,8 @@ export default class Dasher extends Enemy {
     this.damage = 15;
     this.points = 25;
 
-    // Scale sprite 2x (display: 64x64)
-    this.setScale(2);
+    // Scale sprite 4x (display: 128x128)
+    this.setScale(4);
 
     // Configure physics body (unscaled coords; world size = 2x these values)
     this.setCollideWorldBounds(true);

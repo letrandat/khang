@@ -291,7 +291,7 @@ export default class WaveSystem {
           weights.push(20);
           break;
         case 'dasher':
-          weights.push(30); // 2x spawn weight
+          weights.push(15); // Least common
           break;
         default:
           weights.push(10);
